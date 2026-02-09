@@ -1,7 +1,6 @@
 import type { Body } from './bodies.js';
 
 const TICKS_PER_DAY = 1000;
-const SUBTICKS_PER_TICK = 1000;
 
 export interface Timestamp {
   /** SI seconds since Unix epoch */
@@ -12,8 +11,10 @@ export interface Timestamp {
   dayInt: number;
   /** Tick within current day (0-999) */
   tick: number;
-  /** Sub-tick (0-999, thousandths of a tick) */
+  /** Sub-tick fractional value (0 to 10^decimals - 1) */
   subtick: number;
+  /** Number of sub-tick decimal places */
+  subtickDecimals: number;
   /** Year (epoch-relative), null if daysPerYear < 2 */
   year: number | null;
   /** Day within year (0-indexed), null if daysPerYear < 2 */
@@ -38,10 +39,14 @@ export class Clock {
   readonly tickSeconds: number;
   readonly daysPerYear: number;
 
+  /** Number of sub-tick decimal places needed for sub-second resolution */
+  readonly subtickDecimals: number;
+
   constructor(body: Body) {
     this.body = body;
     this.tickSeconds = body.daySeconds / TICKS_PER_DAY;
     this.daysPerYear = body.yearSeconds / body.daySeconds;
+    this.subtickDecimals = Math.max(3, Math.ceil(Math.log10(this.tickSeconds)));
   }
 
   /**
@@ -54,7 +59,8 @@ export class Clock {
     const dayFrac = day - dayInt;
     const tickFrac = dayFrac * TICKS_PER_DAY;
     const tick = Math.floor(tickFrac);
-    const subtick = Math.floor((tickFrac - tick) * SUBTICKS_PER_TICK);
+    const subtickScale = Math.pow(10, this.subtickDecimals);
+    const subtick = Math.floor((tickFrac - tick) * subtickScale);
 
     let year: number | null = null;
     let dayOfYear: number | null = null;
@@ -64,7 +70,7 @@ export class Clock {
       dayOfYear = dayInt - Math.floor(year * this.daysPerYear);
     }
 
-    return { epoch: epochSeconds, day, dayInt, tick, subtick, year, dayOfYear, daysPerYear: this.daysPerYear };
+    return { epoch: epochSeconds, day, dayInt, tick, subtick, subtickDecimals: this.subtickDecimals, year, dayOfYear, daysPerYear: this.daysPerYear };
   }
 
   now(): Timestamp {
@@ -82,7 +88,7 @@ export class Clock {
     const showSubtick = opts.subtick !== false;
     const showDivision = opts.division !== false;
     const tickStr = String(ts.tick).padStart(3, '0');
-    const subtickStr = showSubtick ? `.${String(ts.subtick).padStart(3, '0')}` : '';
+    const subtickStr = showSubtick ? `.${String(ts.subtick).padStart(ts.subtickDecimals, '0')}` : '';
     const divStr = showDivision ? `@${parseFloat(this.tickSeconds.toFixed(1))}` : '';
 
     let lonStr = '';
@@ -158,7 +164,8 @@ export class Clock {
       throw new Error(`Invalid orrery timestamp: ${str}`);
     }
 
-    const epochSeconds = (dayInt + (tick + subtick / 1000) / 1000) * this.body.daySeconds;
+    const subtickScale = Math.pow(10, this.subtickDecimals);
+    const epochSeconds = (dayInt + (tick + subtick / subtickScale) / 1000) * this.body.daySeconds;
     return this.at(epochSeconds * 1000);
   }
 

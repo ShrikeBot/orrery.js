@@ -219,7 +219,7 @@
   </div>
 
   <script>
-    const T=1000,S=1000;
+    const T=1000;
     const B=[
       {n:'Mars',d:88775.244,y:687*86400},
       {n:'Luna',d:2551443,y:365.25*86400},
@@ -236,16 +236,19 @@
     ];
     const E={n:'Earth',d:86400,y:365.25*86400};
 
+    function sdec(ts){return Math.max(3,Math.ceil(Math.log10(ts)));}
+
     function calc(b,ms){
       const e=ms/1000,ts=b.d/T,dp=b.y/b.d,day=e/b.d,di=Math.floor(day),df=day-di;
-      const tf=df*T,tk=Math.floor(tf),st=Math.floor((tf-tk)*S);
+      const tf=df*T,tk=Math.floor(tf),sd=sdec(ts),sc=Math.pow(10,sd);
+      const st=Math.floor((tf-tk)*sc);
       let yr=null,dy=null;
       if(dp>=2){yr=Math.floor(di/dp);dy=di-Math.floor(yr*dp);}
-      return{yr,dy,di,tk,st,ts,dp,df};
+      return{yr,dy,di,tk,st,ts,dp,df,sd};
     }
 
     function f(c){
-      const tk=String(c.tk).padStart(3,'0'),st=String(c.st).padStart(3,'0');
+      const tk=String(c.tk).padStart(3,'0'),st=String(c.st).padStart(c.sd,'0');
       const dv=parseFloat(c.ts.toFixed(1));
       if(c.yr!==null&&c.dy!==null){
         const w=Math.max(3,String(Math.ceil(c.dp)).length);
@@ -255,7 +258,7 @@
     }
 
     function fp(c){
-      const tk=String(c.tk).padStart(3,'0'),st=String(c.st).padStart(3,'0');
+      const tk=String(c.tk).padStart(3,'0'),st=String(c.st).padStart(c.sd,'0');
       const dv=parseFloat(c.ts.toFixed(1));
       if(c.yr!==null&&c.dy!==null){
         const w=Math.max(3,String(Math.ceil(c.dp)).length);

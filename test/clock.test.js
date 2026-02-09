@@ -82,7 +82,7 @@ describe('Mercury-like (day > year)', () => {
     const ts = mercury.at(1770681600000);
     assert.equal(ts.year, null);
     assert.equal(ts.dayOfYear, null);
-    assert.match(mercury.format(ts), /^T\d+:\d{3}\.\d{3}@/);
+    assert.match(mercury.format(ts), /^T\d+:\d{3}\.\d{5}@/);
   });
 });
 
