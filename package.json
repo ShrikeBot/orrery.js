@@ -1,0 +1,28 @@
+{
+  "name": "orrery.js",
+  "version": "0.1.0",
+  "description": "Universal metric time for any celestial body. Earth, Mars, Pluto, Io — same format, different constants.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test test/*.test.js"
+  },
+  "keywords": [
+    "time", "metric-time", "mars", "space", "celestial",
+    "epoch", "clock", "orrery", "solar-system", "robot-time"
+  ],
+  "author": "Shrike <shrikebot2@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}
