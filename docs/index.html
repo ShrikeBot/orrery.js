@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>orrery.js — Universal Metric Time</title>
+  <meta name="description" content="Universal metric time for any celestial body. 1000 ticks per day. Earth, Mars, Pluto — same format, different constants.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #000;
+      color: #c8c8c8;
+      font-family: 'JetBrains Mono', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: #22c55e; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .header h1 {
+      font-size: 1.6rem;
+      color: #22c55e;
+      font-weight: 400;
+      margin: 0 0 0.5rem 0;
+      letter-spacing: 0.05em;
+    }
+
+    .header .sub {
+      color: #444;
+      font-size: 0.8rem;
+    }
+
+    /* Primary clock */
+    .primary {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .primary .time {
+      font-size: clamp(1.6rem, 5vw, 3rem);
+      color: #22c55e;
+      letter-spacing: 0.04em;
+      line-height: 1;
+      text-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+    }
+
+    .primary .label {
+      font-size: 0.7rem;
+      color: #333;
+      margin-top: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .primary .utc {
+      font-size: 0.75rem;
+      color: #282828;
+      margin-top: 0.3rem;
+    }
+
+    /* Progress bar */
+    .bar-wrap {
+      max-width: 960px;
+      width: 100%;
+      height: 2px;
+      background: #111;
+      margin-bottom: 2rem;
+    }
+
+    .bar {
+      height: 100%;
+      background: #22c55e;
+      box-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
+      transition: width 0.1s linear;
+    }
+
+    /* Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1px;
+      max-width: 960px;
+      width: 100%;
+      border: 1px solid #151515;
+    }
+
+    .cell {
+      background: #080808;
+      padding: 1rem 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      transition: background 0.15s;
+    }
+
+    .cell:hover { background: #0e0e0e; }
+
+    .cell .name {
+      font-size: 0.65rem;
+      color: #383838;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .cell .time {
+      font-size: 1.05rem;
+      color: #b0b0b0;
+      letter-spacing: 0.02em;
+    }
+
+    .cell .time .dim { color: #383838; }
+
+    .cell .meta {
+      font-size: 0.6rem;
+      color: #282828;
+    }
+
+    /* Format key */
+    .key {
+      max-width: 960px;
+      width: 100%;
+      margin-top: 2rem;
+      padding: 1rem 1.2rem;
+      border: 1px solid #151515;
+      background: #080808;
+      font-size: 0.68rem;
+      color: #383838;
+      line-height: 1.8;
+    }
+
+    .key .g { color: #22c55e; }
+    .key .w { color: #555; }
+
+    /* Install */
+    .install {
+      max-width: 960px;
+      width: 100%;
+      margin-top: 1px;
+      padding: 0.8rem 1.2rem;
+      border: 1px solid #151515;
+      border-top: none;
+      background: #080808;
+      font-size: 0.72rem;
+      color: #444;
+    }
+
+    .install code {
+      color: #22c55e;
+      background: #0f1f0f;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 3rem;
+      text-align: center;
+      font-size: 0.65rem;
+      color: #282828;
+    }
+
+    .footer a { color: #333; }
+    .footer a:hover { color: #22c55e; }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🪐 orrery.js</h1>
+    <p class="sub">Universal metric time for any celestial body</p>
+  </div>
+
+  <div class="primary">
+    <div class="time" id="pt"></div>
+    <div class="label">Earth</div>
+    <div class="utc" id="utc"></div>
+  </div>
+
+  <div class="bar-wrap"><div class="bar" id="bar"></div></div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="key">
+    <span class="g">T</span><span class="w">year</span><span class="g">:</span><span class="w">day</span><span class="g">:</span><span class="w">tick</span><span class="g">.</span><span class="w">subtick</span><span class="g">@</span><span class="w">sec/tick</span>
+    &nbsp;&mdash;&nbsp;
+    1000 ticks/day &middot; synodic solar day &middot; SI seconds canonical
+  </div>
+
+  <div class="install">
+    <code>npm install orrery.js</code>
+    &nbsp;&middot;&nbsp;
+    <a href="https://github.com/ShrikeBot/orrery.js/blob/main/SPEC.md">spec</a>
+    &nbsp;&middot;&nbsp;
+    <a href="https://github.com/ShrikeBot/orrery.js">source</a>
+    &nbsp;&middot;&nbsp;
+    <a href="https://github.com/ShrikeBot/orrery.js/blob/main/README.md">docs</a>
+  </div>
+
+  <div class="footer">
+    Built by <a href="https://shrikebot.io">Shrike</a>
+  </div>
+
+  <script>
+    const T=1000,S=1000;
+    const B=[
+      {n:'Mars',d:88775.244,y:687*86400},
+      {n:'Luna',d:2551443,y:365.25*86400},
+      {n:'Jupiter',d:35733,y:11.862*365.25*86400},
+      {n:'Io',d:152930,y:11.862*365.25*86400},
+      {n:'Saturn',d:38362,y:29.457*365.25*86400},
+      {n:'Titan',d:1377648,y:29.457*365.25*86400},
+      {n:'Europa',d:306720,y:11.862*365.25*86400},
+      {n:'Venus',d:10087200,y:224.701*86400},
+      {n:'Mercury',d:15201360,y:87.969*86400},
+      {n:'Pluto',d:551856.7,y:248.09*365.25*86400},
+      {n:'Neptune',d:57996,y:164.8*365.25*86400},
+      {n:'Uranus',d:62064,y:84.011*365.25*86400},
+      {n:'Ceres',d:32668,y:4.6*365.25*86400},
+      {n:'Enceladus',d:118386.4,y:29.457*365.25*86400},
+      {n:'Triton',d:507772.8,y:164.8*365.25*86400},
+      {n:'Charon',d:551856.7,y:248.09*365.25*86400},
+      {n:'Ganymede',d:618153.6,y:11.862*365.25*86400},
+      {n:'Callisto',d:1441929.6,y:11.862*365.25*86400},
+      {n:'Eris',d:93240,y:559.07*365.25*86400},
+      {n:'Haumea',d:14040,y:283.28*365.25*86400},
+    ];
+    const E={n:'Earth',d:86400,y:365.25*86400};
+
+    function calc(b,ms){
+      const e=ms/1000,ts=b.d/T,dp=b.y/b.d,day=e/b.d,di=Math.floor(day),df=day-di;
+      const tf=df*T,tk=Math.floor(tf),st=Math.floor((tf-tk)*S);
+      let yr=null,dy=null;
+      if(dp>=2){yr=Math.floor(di/dp);dy=di-Math.floor(yr*dp);}
+      return{yr,dy,di,tk,st,ts,dp,df};
+    }
+
+    function f(c){
+      const tk=String(c.tk).padStart(3,'0'),st=String(c.st).padStart(3,'0');
+      const dv=parseFloat(c.ts.toFixed(1));
+      if(c.yr!==null&&c.dy!==null){
+        const w=Math.max(3,String(Math.ceil(c.dp)).length);
+        return`T${c.yr}:${String(c.dy).padStart(w,'0')}:${tk}.${st}<span class="dim">@${dv}</span>`;
+      }
+      return`T${c.di}:${tk}.${st}<span class="dim">@${dv}</span>`;
+    }
+
+    function fp(c){
+      const tk=String(c.tk).padStart(3,'0'),st=String(c.st).padStart(3,'0');
+      const dv=parseFloat(c.ts.toFixed(1));
+      if(c.yr!==null&&c.dy!==null){
+        const w=Math.max(3,String(Math.ceil(c.dp)).length);
+        return`T${c.yr}:${String(c.dy).padStart(w,'0')}:${tk}.${st}@${dv}`;
+      }
+      return`T${c.di}:${tk}.${st}@${dv}`;
+    }
+
+    function mt(b,c){
+      const t=c.ts<60?`${c.ts.toFixed(1)}s`:c.ts<3600?`${(c.ts/60).toFixed(1)}m`:`${(c.ts/3600).toFixed(1)}h`;
+      const d=b.d<86400?`${(b.d/3600).toFixed(1)}h`:`${(b.d/86400).toFixed(1)}d`;
+      return`${t}/tick · ${d} day`;
+    }
+
+    const g=document.getElementById('grid');
+    B.forEach((b,i)=>{
+      const c=document.createElement('div');c.className='cell';
+      c.innerHTML=`<span class="name">${b.n}</span><span class="time" id="b${i}"></span><span class="meta" id="m${i}"></span>`;
+      g.appendChild(c);
+    });
+
+    function upd(){
+      const now=Date.now(),ec=calc(E,now);
+      document.getElementById('pt').textContent=fp(ec);
+      document.getElementById('utc').textContent=new Date(now).toISOString().slice(0,19)+'Z';
+      document.getElementById('bar').style.width=`${ec.df*100}%`;
+      B.forEach((b,i)=>{
+        const c=calc(b,now);
+        document.getElementById(`b${i}`).innerHTML=f(c);
+        document.getElementById(`m${i}`).textContent=mt(b,c);
+      });
+    }
+
+    upd();setInterval(upd,86);
+  </script>
+</body>
+</html>

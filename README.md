@@ -1,7 +1,7 @@
 <p align="center">
   <img src="https://img.shields.io/npm/v/orrery.js?style=flat-square&color=22c55e" alt="npm version" />
   <img src="https://img.shields.io/badge/license-MIT-22c55e?style=flat-square" alt="license" />
-  <img src="https://img.shields.io/badge/bodies-∞-22c55e?style=flat-square" alt="bodies" />
+  <img src="https://img.shields.io/badge/bodies-21-22c55e?style=flat-square" alt="bodies" />
 </p>
 
 <h1 align="center">🪐 orrery.js</h1>
@@ -9,6 +9,10 @@
 <p align="center">
   <strong>Universal metric time for any celestial body.</strong><br>
   <em>1000 ticks per day. SI seconds underneath. Earth, Mars, Pluto — same format, different constants.</em>
+</p>
+
+<p align="center">
+  <a href="https://shrikebot.github.io/orrery.js/"><strong>▸ Live Clock Demo</strong></a>
 </p>
 
 ---
@@ -122,39 +126,53 @@ interface Body {
 
 **Synodic day** — always. Not sidereal, not orbital period. Solar noon to solar noon, consistently, on every body. This is why Luna's day is 29.53 Earth days (not 27.32), and why tidally locked moons work correctly.
 
-### Planets & Moons
+### Built-in Bodies
 
-The core ships with Earth only. For other bodies:
+21 bodies ship with the core — 8 planets, 5 dwarf planets, 8 major moons:
 
-```bash
-npm install @orrery/solar-system   # coming soon
+```js
+import orrery, {
+  earth, mars, mercury, venus, jupiter, saturn, uranus, neptune,
+  pluto, ceres, eris, haumea, makemake,
+  luna, io, europa, ganymede, callisto, titan, enceladus, triton, charon,
+} from 'orrery.js';
+
+const m = orrery(mars);
+m.format(m.now());  // T29:556:308.037@88.8
 ```
 
 Or define your own:
 
 ```js
-const mars  = orrery({ name: 'Mars',    daySeconds: 88775.244, yearSeconds: 59355072 });
-const io    = orrery({ name: 'Io',      daySeconds: 152930,    yearSeconds: 374335545.6 });
-const pluto = orrery({ name: 'Pluto',   daySeconds: 551856.7,  yearSeconds: 7824384048 });
-const titan = orrery({ name: 'Titan',   daySeconds: 1377648,   yearSeconds: 929292518.4 });
+const sedna = orrery({ name: 'Sedna', daySeconds: 36000, yearSeconds: 11400 * 365.25 * 86400 });
 ```
 
 ### Reference Table
 
-| Body    | Day (Earth hours) | Days/Year | Tick (seconds) | Notes |
-|---------|-------------------|-----------|----------------|-------|
-| Earth   | 24.0              | 365.25    | 86.4           | |
-| Mars    | 24.7              | 668.6     | 88.8           | |
-| Luna    | 708.7             | 12.4      | 2551.4         | Tidally locked to Earth |
-| Io      | 42.5              | 2447      | 152.9          | Tidally locked to Jupiter |
-| Pluto   | 153.3             | 3.7       | 551.9          | |
-| Mercury | 4222.6            | 0.5       | 15201.4        | Day > year (canonical only) |
-| Venus   | 2802.0            | 1.9       | 10087.2        | Retrograde rotation |
-| Jupiter | 9.9               | 10476     | 35.7           | 5-digit day field |
-| Saturn  | 10.7              | 24160     | 38.4           | |
-| Uranus  | 17.2              | 42700     | 62.1           | 98° axial tilt |
-| Neptune | 16.1              | 89800     | 58.0           | |
-| Titan   | 382.7             | 780       | 1377.6         | Tidally locked to Saturn |
+| Body      | Day (Earth hours) | Days/Year | Tick (s) | Notes |
+|-----------|-------------------|-----------|----------|-------|
+| Earth     | 24.0              | 365       | 86.4     | |
+| Mars      | 24.7              | 669       | 88.8     | |
+| Mercury   | 4222.6            | 0.5       | 15201.4  | Day > year |
+| Venus     | 2802.0            | 1.9       | 10087.2  | Retrograde |
+| Jupiter   | 9.9               | 10476     | 35.7     | |
+| Saturn    | 10.7              | 24160     | 38.4     | |
+| Uranus    | 17.2              | 42700     | 62.1     | 98° tilt |
+| Neptune   | 16.1              | 89800     | 58.0     | |
+| Pluto     | 153.3             | 3.7       | 551.9    | |
+| Ceres     | 9.1               | 4450      | 32.7     | |
+| Eris      | 25.9              | 6543      | 93.2     | |
+| Haumea    | 3.9               | 17745     | 14.0     | Fastest dwarf planet |
+| Makemake  | 22.8              | 3277      | 82.1     | |
+| Luna      | 708.7             | 12.4      | 2551.4   | Tidally locked |
+| Io        | 42.5              | 2447      | 152.9    | Tidally locked |
+| Europa    | 85.2              | 1220      | 306.7    | Tidally locked |
+| Ganymede  | 171.7             | 605       | 618.2    | Tidally locked |
+| Callisto  | 400.5             | 260       | 1441.9   | Tidally locked |
+| Titan     | 382.7             | 780       | 1377.6   | Tidally locked |
+| Enceladus | 32.9              | 7850      | 118.4    | Tidally locked |
+| Triton    | 141.0             | 2854      | 507.8    | Retrograde orbit |
+| Charon    | 153.3             | 3.7       | 551.9    | Pluto-locked |
 
 ## Edge Cases
 
