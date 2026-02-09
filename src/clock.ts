@@ -44,7 +44,11 @@ export class Clock {
     this.daysPerYear = body.yearSeconds / body.daySeconds;
   }
 
-  at(epochSeconds: number): Timestamp {
+  /**
+   * Time at a given Unix timestamp in milliseconds.
+   */
+  at(ms: number): Timestamp {
+    const epochSeconds = ms / 1000;
     const day = epochSeconds / this.body.daySeconds;
     const dayInt = Math.floor(day);
     const dayFrac = day - dayInt;
@@ -64,11 +68,11 @@ export class Clock {
   }
 
   now(): Timestamp {
-    return this.at(Date.now() / 1000);
+    return this.at(Date.now());
   }
 
   fromDate(date: Date): Timestamp {
-    return this.at(date.getTime() / 1000);
+    return this.at(date.getTime());
   }
 
   /**
@@ -154,8 +158,8 @@ export class Clock {
       throw new Error(`Invalid orrery timestamp: ${str}`);
     }
 
-    const epoch = (dayInt + (tick + subtick / 1000) / 1000) * this.body.daySeconds;
-    return this.at(epoch);
+    const epochSeconds = (dayInt + (tick + subtick / 1000) / 1000) * this.body.daySeconds;
+    return this.at(epochSeconds * 1000);
   }
 
   toString(): string {
