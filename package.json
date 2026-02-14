@@ -11,18 +11,32 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "node --test test/*.test.js"
   },
   "keywords": [
-    "time", "metric-time", "mars", "space", "celestial",
-    "epoch", "clock", "orrery", "solar-system", "robot-time"
+    "time",
+    "metric-time",
+    "mars",
+    "space",
+    "celestial",
+    "epoch",
+    "clock",
+    "orrery",
+    "solar-system",
+    "robot-time"
   ],
   "author": "Shrike <shrikebot2@gmail.com>",
   "license": "MIT",
   "devDependencies": {
-    "typescript": "^5.7.0"
+    "@shrikebot/eslint-config": "^1.0.0",
+    "eslint": "^9.39.2",
+    "prettier": "^3.8.1",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.55.0"
   }
 }
